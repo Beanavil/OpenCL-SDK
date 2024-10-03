@@ -225,7 +225,7 @@ find_suitable_device(VkInstance instance,
     cl_int error = CL_SUCCESS;
     bool candidate_found = false;
     cl_uint platform_count = 0;
-    struct device_candidate found_candidate = {0};
+    struct device_candidate found_candidate = { 0 };
     OCLERROR_RET(clGetPlatformIDs(0, NULL, &platform_count), error, ret);
 
     cl_platform_id* platforms =
@@ -237,14 +237,13 @@ find_suitable_device(VkInstance instance,
     const char* uuid_khronos_extension[] = {
         CL_KHR_DEVICE_UUID_EXTENSION_NAME
     };
-    for (cl_uint platform_id = 0; platform_id < platform_count;
-         ++platform_id)
+    for (cl_uint platform_id = 0; platform_id < platform_count; ++platform_id)
     {
         cl_uint cl_platform_devices_count = 0;
         error = clGetDeviceIDs(platforms[platform_id], CL_DEVICE_TYPE_ALL, 0,
                                NULL, &cl_platform_devices_count);
-        // Some platforms may not have any suitable device. Allow the CL_DEVICE_NOT_FOUND
-        // error so that other platforms can be checked.
+        // Some platforms may not have any suitable device. Allow the
+        // CL_DEVICE_NOT_FOUND error so that other platforms can be checked.
         if (error != CL_SUCCESS && error != CL_DEVICE_NOT_FOUND)
         {
             goto platforms;
@@ -253,8 +252,10 @@ find_suitable_device(VkInstance instance,
              ++device_id)
         {
             cl_device_id device;
-            OCLERROR_PAR(device = cl_util_get_device(
-                platform_id, device_id, CL_DEVICE_TYPE_ALL, &error), error, platforms);
+            OCLERROR_PAR(device =
+                             cl_util_get_device(platform_id, device_id,
+                                                CL_DEVICE_TYPE_ALL, &error),
+                         error, platforms);
             cl_device_count +=
                 check_khronos_extensions(device, uuid_khronos_extension, 1);
         }
@@ -274,18 +275,15 @@ find_suitable_device(VkInstance instance,
         (struct cl_device_candidate*)malloc(
             cl_device_count * sizeof(struct cl_device_candidate));
     cl_device_count = 0;
-    for (cl_uint platform_id = 0; platform_id < platform_count;
-         ++platform_id)
+    for (cl_uint platform_id = 0; platform_id < platform_count; ++platform_id)
     {
         cl_uint cl_platform_devices_count = 0;
-        OCLERROR_RET(clGetDeviceIDs(platforms[platform_id],
-                                    CL_DEVICE_TYPE_ALL, 0, NULL,
-                                    &cl_platform_devices_count),
+        OCLERROR_RET(clGetDeviceIDs(platforms[platform_id], CL_DEVICE_TYPE_ALL,
+                                    0, NULL, &cl_platform_devices_count),
                      error, candidates);
 
         for (cl_uint cl_candidate_id = 0;
-             cl_candidate_id < cl_platform_devices_count;
-             ++cl_candidate_id)
+             cl_candidate_id < cl_platform_devices_count; ++cl_candidate_id)
         {
             cl_device_id device = cl_util_get_device(
                 platform_id, cl_candidate_id, CL_DEVICE_TYPE_ALL, &error);
