@@ -448,13 +448,9 @@ jobs:
         Get-ChildItem ${env:IMAGE_INTEL_PREFIX}\oneapi-tbb\redist\intel64\vc14\*.dll | ForEach-Object { New-Item -Type SymbolicLink -Path ${env:IMAGE_INTEL_PREFIX}\oclcpuexp\tbb -Name $_.Name -Value $_.FullName | Out-Null; }; `
         New-Item -Type Directory HKLM:\SOFTWARE\Khronos\OpenCL -Force | Out-Null; `
         New-Item -Type File HKLM:\SOFTWARE\Khronos\OpenCL\Vendors | Out-Null; `
-        Set-ItemProperty -Path HKLM:\SOFTWARE\Khronos\OpenCL\Vendors -Name ${env:IMAGE_INTEL_PREFIX}\oclcpuexp\intelocl64.dll -Type DWord -Value 0; `
-        dir C:\Windows\System32\KERNEL32.dll; `
-        dir C:\Windows\System32\ucrtbased.dll; `
-        dir C:\Windows\System32\OpenCL.dll;
+        Set-ItemProperty -Path HKLM:\SOFTWARE\Khronos\OpenCL\Vendors -Name ${env:IMAGE_INTEL_PREFIX}\oclcpuexp\intelocl64.dll -Type DWord -Value 0;
 
-    - name: Install Vulkan dependencies 32bit
-      if: matrix.BIN == 'x86'
+    - name: Install Vulkan dependencies
       run: |
         Invoke-WebRequest ${env:VULKAN_RT_URL} -OutFile vulkan-rt-components.zip; `
         Invoke-WebRequest ${env:VULKAN_SDK_URL} -OutFile vulkan-sdk-installer.exe; `
@@ -463,28 +459,15 @@ jobs:
         New-Item -Type Directory ${env:TEMP}\vulkan_temp | Out-Null; `
         Expand-Archive -Path vulkan-rt-components.zip -DestinationPath "${env:TEMP}\vulkan_temp"; `
         Remove-Item vulkan-rt-components.zip
-        dir ${env:TEMP}\vulkan_temp
-        Start-Process -FilePath powershell.exe -ArgumentList "Move-Item -Path '${env:TEMP}\vulkan_temp\VulkanRT-1.3.261.1-Components\x86\*' -Destination 'C:\Windows\SysWOW64\' -Force" -Verb RunAs -Wait; `
-        Remove-Item -Recurse ${env:TEMP}\vulkan_temp; `
-        echo "Vulkan_LIB_DIR=$env:VULKAN_SDK/Lib32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append;
-
-    - name: Install Vulkan dependencies 64bit
-      if: matrix.BIN == 'x64'
-      run: |
-        echo "CPU Information:"
-        wmic cpu get name, numberofcores, maxclockspeed
-        Invoke-WebRequest ${env:VULKAN_RT_URL} -OutFile vulkan-rt-components.zip; `
-        Invoke-WebRequest ${env:VULKAN_SDK_URL} -OutFile vulkan-sdk-installer.exe; `
-        Start-Process -FilePath .\vulkan-sdk-installer.exe -ArgumentList "--accept-licenses --default-answer --confirm-command install com.lunarg.vulkan" -Wait; `
-        Remove-Item vulkan-sdk-installer.exe; `
-        New-Item -Type Directory ${env:TEMP}\vulkan_temp | Out-Null; `
-        Expand-Archive -Path vulkan-rt-components.zip -DestinationPath "${env:TEMP}\vulkan_temp"; `
-        Remove-Item vulkan-rt-components.zip
-        dir ${env:TEMP}\vulkan_temp
-        Start-Process -FilePath powershell.exe -ArgumentList "Move-Item -Path '${env:TEMP}\vulkan_temp\VulkanRT-1.3.261.1-Components\x64\*' -Destination 'C:\Windows\System32\' -Force" -Verb RunAs -Wait; `
-        Remove-Item -Recurse ${env:TEMP}\vulkan_temp; `
-        echo "Vulkan_LIB_DIR=$env:VULKAN_SDK/Lib" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append;
-
+        if ('${{ matrix.BIN }}' -eq 'x64')
+        {
+          Start-Process -FilePath powershell.exe -ArgumentList "Move-Item -Path '${env:TEMP}\vulkan_temp\VulkanRT-1.3.261.1-Components\x64\*' -Destination 'C:\Windows\System32\' -Force" -Verb RunAs -Wait; `
+          echo "Vulkan_LIB_DIR=$env:VULKAN_SDK/Lib" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        } else {
+          Start-Process -FilePath powershell.exe -ArgumentList "Move-Item -Path '${env:TEMP}\vulkan_temp\VulkanRT-1.3.261.1-Components\x86\*' -Destination 'C:\Windows\SysWOW64\' -Force" -Verb RunAs -Wait; `
+          echo "Vulkan_LIB_DIR=$env:VULKAN_SDK/Lib32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        }
+        Remove-Item -Recurse ${env:TEMP}\vulkan_temp
 
     - name: Cache dependencies (vcpkg)
       if: matrix.DEPS == 'vcpkg'
