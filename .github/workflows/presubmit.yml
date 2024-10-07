@@ -411,7 +411,7 @@ jobs:
       INTEL_OCL_URL: https://github.com/intel/llvm/releases/download/2023-WW27/win-oclcpuexp-2023.16.6.0.28_rel.zip
       INTEL_TBB_URL: https://github.com/oneapi-src/oneTBB/releases/download/v2021.10.0/oneapi-tbb-2021.10.0-win.zip
       IMAGE_INTEL_PREFIX: C:\Tools\Intel
-      VULKAN_RT_URL: https://sdk.lunarg.com/sdk/download/1.3.261.1/windows/VulkanRT-1.3.261.1-Components.zip
+      VULKAN_RT_URL: https://sdk.lunarg.com/sdk/download/1.3.261.1/windows/VulkanRT-1.3.261.1-Installer.exe
       VULKAN_SDK_URL: https://sdk.lunarg.com/sdk/download/1.3.261.1/windows/VulkanSDK-1.3.261.1-Installer.exe
       VULKAN_SDK: C:/VulkanSDK/1.3.261.1
 
@@ -452,22 +452,19 @@ jobs:
 
     - name: Install Vulkan dependencies
       run: |
-        Invoke-WebRequest ${env:VULKAN_RT_URL} -OutFile vulkan-rt-components.zip; `
+        Invoke-WebRequest ${env:VULKAN_RT_URL} -OutFile vulkan-rt-installer.exe; `
         Invoke-WebRequest ${env:VULKAN_SDK_URL} -OutFile vulkan-sdk-installer.exe; `
         Start-Process -FilePath .\vulkan-sdk-installer.exe -ArgumentList "--accept-licenses --default-answer --confirm-command install com.lunarg.vulkan.32bit" -Wait; `
+        Start-Process -FilePath .\vulkan-rt-installer.exe -ArgumentList "/S" -Verb RunAs -Wait; `
         Remove-Item vulkan-sdk-installer.exe; `
-        New-Item -Type Directory ${env:TEMP}\vulkan_temp | Out-Null; `
-        Expand-Archive -Path vulkan-rt-components.zip -DestinationPath "${env:TEMP}\vulkan_temp"; `
-        Remove-Item vulkan-rt-components.zip
+        Remove-Item vulkan-rt-installer.exe; `
         if ('${{ matrix.BIN }}' -eq 'x64')
         {
-          Start-Process -FilePath powershell.exe -ArgumentList "Move-Item -Path '${env:TEMP}\vulkan_temp\VulkanRT-1.3.261.1-Components\x64\*' -Destination 'C:\Windows\System32\' -Force" -Verb RunAs -Wait; `
           echo "Vulkan_LIB_DIR=$env:VULKAN_SDK/Lib" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          dir C:\Windows\System32\vulkan-1.dll
         } else {
-          Start-Process -FilePath powershell.exe -ArgumentList "Move-Item -Path '${env:TEMP}\vulkan_temp\VulkanRT-1.3.261.1-Components\x86\*' -Destination 'C:\Windows\SysWOW64\' -Force" -Verb RunAs -Wait; `
           echo "Vulkan_LIB_DIR=$env:VULKAN_SDK/Lib32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         }
-        Remove-Item -Recurse ${env:TEMP}\vulkan_temp
 
     - name: Cache dependencies (vcpkg)
       if: matrix.DEPS == 'vcpkg'
