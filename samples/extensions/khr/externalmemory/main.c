@@ -338,9 +338,12 @@ int main(int argc, char* argv[])
     const char* kernel_location = "./external_saxpy.cl";
     char *kernel = NULL, *tmp = NULL;
     size_t program_size = 0;
-    OCLERROR_PAR(
-        kernel = cl_util_read_text_file(kernel_location, &program_size, &error),
-        error, que);
+    kernel = cl_util_read_text_file(kernel_location, &program_size, &error);
+    if (error != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot open kernel source: %s\n", kernel_location);
+        goto end;
+    }
     MEM_CHECK(tmp = (char*)realloc(kernel, program_size), error, ker);
     kernel = tmp;
     OCLERROR_PAR(program = clCreateProgramWithSource(
@@ -352,14 +355,14 @@ int main(int argc, char* argv[])
     size_t versions_size = 0;
     OCLERROR_RET(clGetDeviceInfo(cl_device, CL_DEVICE_OPENCL_C_ALL_VERSIONS, 0,
                                  NULL, &versions_size),
-                 error, end);
+                 error, prg);
     size_t versions_count = versions_size / sizeof(cl_name_version);
 
     // Get and check versions.
     cl_name_version* dev_versions = (cl_name_version*)malloc(versions_size);
     OCLERROR_RET(clGetDeviceInfo(cl_device, CL_DEVICE_OPENCL_C_ALL_VERSIONS,
                                  versions_size, dev_versions, NULL),
-                 error, end);
+                 error, prg);
     char compiler_options[1024] = "";
     for (cl_uint i = 0; i < versions_count; ++i)
     {
