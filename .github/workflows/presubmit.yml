@@ -287,10 +287,11 @@ jobs:
 
     - name: Package DEB
       run: $CPACK_EXE
-        --config "$GITHUB_WORKSPACE/build/CPackConfig.cmake"
-        -G DEB
-        -C ${{matrix.CONF.CONFIG}}
-        -B "$GITHUB_WORKSPACE/package-deb"
+          --config "$GITHUB_WORKSPACE/build/CPackConfig.cmake"
+          -G DEB
+          -C ${{matrix.CONF.CONFIG}}
+          -B "$GITHUB_WORKSPACE/package-deb" &&
+        dpkg -c package-deb/opencl-sdk_2024.10.24-1_amd64.deb
 
     - name: Consume (DEB)
       run: dpkg -i $GITHUB_WORKSPACE/package-deb/*.deb &&
