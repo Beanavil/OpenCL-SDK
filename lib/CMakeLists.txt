@@ -114,13 +114,6 @@ foreach(UTIL_LIB_NAME IN ITEMS Utils UtilsCpp)
     DESTINATION ${config_package_location}
     COMPONENT binary
   )
-
-  # For packaging the utils libraries
-  install(
-    TARGETS ${UTIL_LIB_TARGET}
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT binary
-  )
 endforeach()
 
 if(OPENCL_SDK_BUILD_SAMPLES)

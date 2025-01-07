@@ -151,13 +151,6 @@ if (OPENCL_EXTENSION_LOADER_INSTALL)
         DESTINATION ${OPENCL_EXTENSION_LOADER_CONFIG_PATH}
         COMPONENT binary
     )
-
-    # For packaging the extensions library
-    install(
-        TARGETS OpenCLExt
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        COMPONENT binary
-    )
 endif()
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
